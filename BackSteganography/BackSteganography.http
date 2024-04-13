@@ -1,0 +1,6 @@
+@BackSteganography_HostAddress = http://localhost:5289
+
+GET {{BackSteganography_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
