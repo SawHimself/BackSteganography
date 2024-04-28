@@ -70,7 +70,6 @@ namespace BackSteganography.Controllers
                 return StatusCode(StatusCodes.Status400BadRequest, "The file format is not supported.");
             }
 
-
             try
             {
                 var result = await WriteFile(uniqueUserID, file, "Videos");
@@ -138,7 +137,7 @@ namespace BackSteganography.Controllers
         {
             try
             {
-                string clientDirectory = Path.Combine(Directory.GetCurrentDirectory(), "Upload", uniqueUserID);
+                string clientDirectory = Path.Combine(Directory.GetCurrentDirectory(), "Upload", uniqueUserID, "Result");
                 string filepath = Path.Combine(clientDirectory, "AlgorithmResult", filename);
 
                 var provider = new FileExtensionContentTypeProvider();
@@ -148,7 +147,7 @@ namespace BackSteganography.Controllers
                 }
 
                 var bytes = await System.IO.File.ReadAllBytesAsync(filepath);
-                Directory.Delete(clientDirectory, true);
+                //Directory.Delete(clientDirectory, true);
                 return File(bytes, contentType, Path.GetFileName(filepath));
             }
             catch

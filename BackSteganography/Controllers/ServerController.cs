@@ -22,7 +22,6 @@ namespace BackSteganography.Controllers
             try
             {
                 string uniqueUserID = Guid.NewGuid().ToString();
-
                 // Записать в базу данных
 
                 var filepath = Path.Combine(Directory.GetCurrentDirectory(), "Upload", uniqueUserID);
