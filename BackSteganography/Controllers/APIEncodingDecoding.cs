@@ -11,18 +11,12 @@ namespace BackSteganography.Controllers
     [ApiController]
     public class APIEncodingDecoding : ControllerBase
     {
-        private string StartSecretAlgorithm(string filename)
-        {
-            // application logic
-            return "Completed successfully! ResultFileName";
-        }
-
         [HttpPut]
         [Route("StartDataEncoding")]
         [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(string), StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> StartDataEncoding(string uniqueUserID, string datafilename, string videofilename)
+        public IActionResult StartDataEncoding(string uniqueUserID, string datafilename, string videofilename)
         {
             try
             {
@@ -56,9 +50,8 @@ namespace BackSteganography.Controllers
                 arguments.Add(videofilename);
                 arguments.Add(datafilename);
                 arguments.Add(resultDirectory);
-                string encodeAlgorithm = Path.Combine("utilities", "AlgorithmV2.py");
-                StartPythonAlgorithm(encodeAlgorithm, ProcessLogFile, arguments);
-
+                string encodeAlgorithm = Path.Combine("utilities", "encode.py");
+                _ = Task.Run(() => StartPythonAlgorithm(encodeAlgorithm, ProcessLogFile, arguments));
                 return StatusCode(200, ProcessID);
             }
             catch
@@ -72,7 +65,7 @@ namespace BackSteganography.Controllers
         [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(string), StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> StartDataDecoding(string uniqueUserID, string videofilename)
+        public IActionResult StartDataDecoding(string uniqueUserID, string videofilename)
         {
             try
             {
@@ -90,8 +83,7 @@ namespace BackSteganography.Controllers
                     return StatusCode(404, "file_not_found");
                 }
 
-                //string utilityName = "python";
-                string scriptName = Path.Combine(Directory.GetCurrentDirectory(), "utilities", "DecodAlgorithm.py");
+                string scriptName = Path.Combine(Directory.GetCurrentDirectory(), "utilities", "decode.py");
                 string resultDirectory = Path.Combine(uniqueUserID, "Result");
 
                 string ProcessID = Guid.NewGuid().ToString();
@@ -100,8 +92,9 @@ namespace BackSteganography.Controllers
                 List<string> arguments = new List<string>();
                 arguments.Add(videofilename);
                 arguments.Add(resultDirectory);
-                StartPythonAlgorithm("DecodAlgorithm", ProcessLogFile, arguments);
-                return StatusCode(200, "start_decoding");
+                string decodeAlgorithm = Path.Combine("utilities", "decode.py");
+                _ = Task.Run(() => StartPythonAlgorithm(decodeAlgorithm, ProcessLogFile, arguments));
+                return StatusCode(200, ProcessID);
             }
             catch
             {
@@ -116,11 +109,8 @@ namespace BackSteganography.Controllers
         [ProducesResponseType(typeof(string), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> LastMessageInLogs(string uniqueUserID, string ProcessID)
         {
-            // Проверка директирии
-            // проверка файла логов
             try
             {
-                ProcessID += ".txt";
                 uniqueUserID = Path.Combine(Directory.GetCurrentDirectory(), "Upload", uniqueUserID);
                 if (!Directory.Exists(uniqueUserID))
                 {
@@ -151,15 +141,14 @@ namespace BackSteganography.Controllers
             }
         }
 
-        private async void StartPythonAlgorithm(string scriptName, string ProcessLogFile, List<string> Arguments)
+        private async Task StartPythonAlgorithm(string scriptName, string ProcessLogFile, List<string> Arguments)
         {
             ProcessStartInfo psi = new ProcessStartInfo();
-            psi.FileName = "python";
+            psi.FileName = "python3";
 
-            //psi.ArgumentList.Add(utilityName);
             psi.ArgumentList.Add(scriptName);
 
-            foreach (string argument in Arguments) 
+            foreach (string argument in Arguments)
             {
                 psi.ArgumentList.Add(argument);
             }
@@ -167,7 +156,7 @@ namespace BackSteganography.Controllers
             psi.RedirectStandardOutput = true;
             psi.UseShellExecute = false;
 
-            Process process = Process.Start(psi);
+            Process? process = Process.Start(psi);
 
             if (process != null)
             {

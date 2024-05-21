@@ -15,7 +15,6 @@ namespace BackSteganography.Controllers
             {
                 string clientDirectory = Path.Combine(Directory.GetCurrentDirectory(), "Upload", uniqueUserID);
 
-                // Если передан верный токен, то папка должна уже существовать
                 if (!Directory.Exists(clientDirectory))
                 {
                     return "invalid_token";
@@ -25,7 +24,6 @@ namespace BackSteganography.Controllers
 
                 Directory.CreateDirectory(filepath);
 
-                // Если в папке уже существуют какие-то файлы, то удаляем их
                 string[] files = Directory.GetFiles(filepath);
                 if (files.Length > 0)
                 {
@@ -52,8 +50,6 @@ namespace BackSteganography.Controllers
             {
                 return "error_when_trying_to_write_data_to_the_server";
             }
-
-
         }
 
         [HttpPost]
@@ -64,7 +60,6 @@ namespace BackSteganography.Controllers
 
         public async Task<IActionResult> UploadVideoFile(String uniqueUserID, IFormFile file, CancellationToken cancellationtoken)
         {
-
             if (!CheckingTheFileFormat(file.FileName, new List<string> { ".mp4", ".avi", ".mkv" }))
             {
                 return StatusCode(StatusCodes.Status400BadRequest, "The file format is not supported.");
@@ -138,7 +133,7 @@ namespace BackSteganography.Controllers
             try
             {
                 string clientDirectory = Path.Combine(Directory.GetCurrentDirectory(), "Upload", uniqueUserID, "Result");
-                string filepath = Path.Combine(clientDirectory, "AlgorithmResult", filename);
+                string filepath = Path.Combine(clientDirectory, filename);
 
                 var provider = new FileExtensionContentTypeProvider();
                 if (!provider.TryGetContentType(filename, out var contentType))
@@ -147,7 +142,6 @@ namespace BackSteganography.Controllers
                 }
 
                 var bytes = await System.IO.File.ReadAllBytesAsync(filepath);
-                //Directory.Delete(clientDirectory, true);
                 return File(bytes, contentType, Path.GetFileName(filepath));
             }
             catch
@@ -156,70 +150,62 @@ namespace BackSteganography.Controllers
             }
         }
 
-        [HttpPost]
-        [Route("NewTestUploadingFileInChunks")]
-        public async Task<IActionResult> UploadChunkV2(int chunkNumber, int totalChunks, string fileId, IFormFile chunkfile)
-        {
-            try
-            {
-                // Проверка на размер чанка
-                // Хэш сумма чанка
-                // Вернуть в процентах загруженные чанки
-
-                string uploadPath = Path.Combine("Upload\\NewDataFilesTest\\", fileId);
-                string chunkFilePath = Path.Combine(uploadPath, $"{chunkNumber}.part");
-
-                using (var stream = new FileStream(chunkFilePath, FileMode.Create))
-                {
-                    await chunkfile.CopyToAsync(stream);
-                }
-
-                if (chunkNumber == totalChunks)
-                {
-                    // Combine all chunks to create the final file
-                    await CombineChunksAsync(uploadPath, fileId, totalChunks);
-                    // Delete temporary chunk files
-                }
-
-                return Ok();
-            }
-            catch (Exception ex)
-            {
-                return BadRequest($"An error occurred: {ex.Message}");
-            }
-        }
-
-        private async Task CombineChunksAsync(string uploadPath, string fileId, int totalChunks)
-        {
-            var finalFilePath = Path.Combine(uploadPath, fileId);
-            using (var finalStream = new FileStream(finalFilePath, FileMode.Create))
-            {
-                for (int i = 1; i <= totalChunks; i++)
-                {
-                    var chunkFilePath = Path.Combine(uploadPath, $"{i}.part");
-                    using (var chunkStream = new FileStream(chunkFilePath, FileMode.Open))
-                    {
-                        await chunkStream.CopyToAsync(finalStream);
-                    }
-                }
-            }
-        }
-
-        private void DeleteChunks(string uploadPath, int totalChunks)
-        {
-            for (int i = 1; i <= totalChunks; i++)
-            {
-                var chunkFilePath = Path.Combine(uploadPath, $"{i}.part");
-                System.IO.File.Delete(chunkFilePath);
-            }
-        }
 
         bool CheckingTheFileFormat(string filename, List<string> supportedFileFormats)
         {
-
             string fileExtension = Path.GetExtension(filename);
-
             return supportedFileFormats.Contains(fileExtension);
         }
+
+        /*        [HttpPost]
+                [Route("NewTestUploadingFileInChunks")]
+                public async Task<IActionResult> UploadChunkV2(int chunkNumber, int totalChunks, string fileId, IFormFile chunkfile)
+                {
+                    try
+                    {
+                        string uploadPath = Path.Combine("Upload\\NewDataFilesTest\\", fileId);
+                        string chunkFilePath = Path.Combine(uploadPath, $"{chunkNumber}.part");
+
+                        using (var stream = new FileStream(chunkFilePath, FileMode.Create))
+                        {
+                            await chunkfile.CopyToAsync(stream);
+                        }
+
+                        if (chunkNumber == totalChunks)
+                        {
+                            await CombineChunksAsync(uploadPath, fileId, totalChunks);
+                        }
+
+                        return Ok();
+                    }
+                    catch (Exception ex)
+                    {
+                        return BadRequest($"An error occurred: {ex.Message}");
+                    }
+                }
+
+                private async Task CombineChunksAsync(string uploadPath, string fileId, int totalChunks)
+                {
+                    var finalFilePath = Path.Combine(uploadPath, fileId);
+                    using (var finalStream = new FileStream(finalFilePath, FileMode.Create))
+                    {
+                        for (int i = 1; i <= totalChunks; i++)
+                        {
+                            var chunkFilePath = Path.Combine(uploadPath, $"{i}.part");
+                            using (var chunkStream = new FileStream(chunkFilePath, FileMode.Open))
+                            {
+                                await chunkStream.CopyToAsync(finalStream);
+                            }
+                        }
+                    }
+                }
+                private void DeleteChunks(string uploadPath, int totalChunks)
+                {
+                    for (int i = 1; i <= totalChunks; i++)
+                    {
+                        var chunkFilePath = Path.Combine(uploadPath, $"{i}.part");
+                        System.IO.File.Delete(chunkFilePath);
+                    }
+                }*/
     }
 }

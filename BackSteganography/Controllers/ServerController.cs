@@ -10,19 +10,18 @@ namespace BackSteganography.Controllers
     {
         [HttpGet]
         [Route("ServerStatusInfo")]
-        public async Task<IActionResult> GetServerInfo()
+        public IActionResult GetServerInfo()
         {
             return Ok("Yes, I’m working, I’m working, leave me alone");
         }
         [HttpGet]
         [Route("GetSessionId")]
         [ProducesResponseType(typeof(string), StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> InitializeSession()
+        public IActionResult InitializeSession()
         {
             try
             {
                 string uniqueUserID = Guid.NewGuid().ToString();
-                // Записать в базу данных
 
                 var filepath = Path.Combine(Directory.GetCurrentDirectory(), "Upload", uniqueUserID);
 
@@ -42,7 +41,7 @@ namespace BackSteganography.Controllers
         [HttpGet]
         [Route("GetCurrentFiles")]
         [ProducesResponseType(typeof(string), StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> GetSessionStatus(string uniqueUserID)
+        public IActionResult GetSessionStatus(string uniqueUserID)
         {
 
             try
@@ -51,7 +50,6 @@ namespace BackSteganography.Controllers
                 string? videoFile = null;
                 string? dataFile = null;
 
-                // Если передан верный токен, то папка должна уже существовать
                 if (!Directory.Exists(clientDirectory))
                 {
                     return StatusCode(200, "session_not_found");

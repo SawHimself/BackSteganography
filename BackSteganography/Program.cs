@@ -2,15 +2,14 @@ using Microsoft.AspNetCore.Http.Features;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddCors(options => options.AddPolicy("HiEveryone", builder => builder
-                    .WithOrigins("http://127.0.0.1:5173")
+//AllowAnyOrigin - is enabled for debugging. Please use WithOrigins to publish your project !
+builder.Services.AddCors(options => options.AddPolicy("OnlyFrontendServer", builder => builder
+                    //.WithOrigins("frontend server ip")
+                    .AllowAnyOrigin()
                     .AllowAnyHeader()
                     .AllowAnyMethod())
 );
@@ -27,20 +26,19 @@ builder.WebHost.ConfigureKestrel(opts => {
 
 var app = builder.Build();
 
-app.UseCors("HiEveryone");
+app.UseCors("OnlyFrontendServer");
 
-
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
 app.MapControllers();
 
 app.Run();
+
